@@ -211,3 +211,12 @@ On Windows:
 ## Support for Other Authentication Providers
 
 Obviously, this tool only supports Azure AD as an identity provider. However, there is a lot of similarity with how other logins with other providers would work (especially if they are SAML providers). If you are interested in building support for a different provider let me know. It would be great to build a more generic AWS CLI login tool with plugins for the various providers.
+
+
+## Additions
+
+* https://github.com/aws-azure-login/aws-azure-login/pull/333
+* [Proxy](https://github.com/aws-azure-login/aws-azure-login/pull/313)
+* [Build libraries in docker](https://github.com/aws-azure-login/aws-azure-login/pull/260) but then removed as replaced with [slim docker](https://github.com/aws-azure-login/aws-azure-login/pull/242)
+* [ignore ssl](https://github.com/aws-azure-login/aws-azure-login/pull/172)
+* [login selector update](https://github.com/aws-azure-login/aws-azure-login/pull/239)

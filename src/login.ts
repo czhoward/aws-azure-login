@@ -10,11 +10,11 @@ import querystring from "querystring";
 import _debug from "debug";
 import { CLIError } from "./CLIError";
 import { awsConfig, ProfileConfig } from "./awsConfig";
-import proxy from "proxy-agent";
 import { paths } from "./paths";
 import mkdirp from "mkdirp";
 import { Agent } from "https";
 import { NodeHttpHandler } from "@smithy/node-http-handler";
+import { HttpsProxyAgent } from "hpagent";
 
 const debug = _debug("aws-azure-login");
 
@@ -128,29 +128,18 @@ const states = [
   },
   {
     name: "account selection",
-    selector: `#aadTile > div > div.table-cell.tile-img > img`,
+    selector: `#tilesHolder > div.tile-container > div > div.table > div > div.table-cell.tile-img > img`,
     async handler(page: puppeteer.Page): Promise<void> {
       debug("Multiple accounts associated with username.");
-      const aadTile = await page.$("#aadTileTitle");
+      const Tile = await page.$("#tilesHolder > div.tile-container > div > div.table > div > div.table-cell.text-left.content > div");
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const aadTileMessage: string = await page.evaluate(
+      const TileMessage: string = await page.evaluate(
         // eslint-disable-next-line
         (a) => a.textContent,
-        aadTile
+        Tile
       );
 
-      const msaTile = await page.$("#msaTileTitle");
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const msaTileMessage: string = await page.evaluate(
-        // eslint-disable-next-line
-        (m) => m.textContent,
-        msaTile
-      );
-
-      const accounts = [
-        { message: aadTileMessage, selector: "#aadTileTitle" },
-        { message: msaTileMessage, selector: "#msaTileTitle" },
-      ];
+      const accounts = [{ message: TileMessage, selector: "#tilesHolder > div.tile-container > div > div.table > div > div.table-cell.text-left.content > div" }];
 
       let account;
       if (accounts.length === 0) {
@@ -168,7 +157,7 @@ const states = [
             message: "Account:",
             type: "list",
             choices: _.map(accounts, "message"),
-            default: aadTileMessage,
+            default: TileMessage,
           } as Question,
         ]);
 
@@ -448,7 +437,8 @@ export const login = {
     awsNoVerifySsl: boolean,
     enableChromeSeamlessSso: boolean,
     noDisableExtensions: boolean,
-    disableGpu: boolean
+    disableGpu: boolean,
+    puppeteerNoVerifySSL: boolean
   ): Promise<void> {
     let headless, cliProxy;
     if (mode === "cli") {
@@ -492,7 +482,8 @@ export const login = {
       enableChromeSeamlessSso,
       profile.azure_default_remember_me,
       noDisableExtensions,
-      disableGpu
+      disableGpu,
+      puppeteerNoVerifySSL
     );
     const roles = this._parseRolesFromSamlResponse(samlResponse);
     const { role, durationHours } = await this._askUserForRoleAndDurationAsync(
@@ -521,7 +512,8 @@ export const login = {
     enableChromeSeamlessSso: boolean,
     forceRefresh: boolean,
     noDisableExtensions: boolean,
-    disableGpu: boolean
+    disableGpu: boolean,
+    puppeteerNoVerifySSL: boolean
   ): Promise<void> {
     const profiles = await awsConfig.getAllProfileNames();
 
@@ -549,7 +541,8 @@ export const login = {
         awsNoVerifySsl,
         enableChromeSeamlessSso,
         noDisableExtensions,
-        disableGpu
+        disableGpu,
+        puppeteerNoVerifySSL
       );
     }
   },
@@ -668,6 +661,7 @@ export const login = {
    * @param {bool} [rememberMe] - Enable remembering the session
    * @param {bool} [noDisableExtensions] - True to prevent Puppeteer from disabling Chromium extensions
    * @param {bool} [disableGpu] - Disables GPU Acceleration
+   * @param {bool} [puppeteerNoVerifySSL] - True to prevent Puppeteer from verifying SSL certificates
    * @returns {Promise.<string>} The SAML response.
    * @private
    */
@@ -683,7 +677,8 @@ export const login = {
     enableChromeSeamlessSso: boolean,
     rememberMe: boolean,
     noDisableExtensions: boolean,
-    disableGpu: boolean
+    disableGpu: boolean,
+    puppeteerNoVerifySSL: boolean
   ): Promise<string> {
     debug("Loading login page in Chrome");
 
@@ -718,7 +713,12 @@ export const login = {
         args.push("--disable-gpu");
       }
 
+      if (puppeteerNoVerifySSL) {
+        args.push("--ignore-certificate-errors");
+      }
+
       browser = await puppeteer.launch({
+        ignoreHTTPSErrors: puppeteerNoVerifySSL ? true : false,
         headless,
         args,
         ignoreDefaultArgs,
@@ -1015,10 +1015,12 @@ export const login = {
     console.log(`Assuming role ${role.roleArn} in region ${region}...`);
     let stsOptions: STSClientConfig = {};
     if (process.env.https_proxy) {
+      const proxy_agent = new HttpsProxyAgent({proxy: process.env.https_proxy ?? "" });
       stsOptions = {
         ...stsOptions,
         requestHandler: new NodeHttpHandler({
-          httpsAgent: proxy(process.env.https_proxy),
+          httpsAgent: proxy_agent,
+          httpAgent: proxy_agent,
         }),
       };
     }
