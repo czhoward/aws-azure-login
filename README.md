@@ -215,8 +215,9 @@ Obviously, this tool only supports Azure AD as an identity provider. However, th
 
 ## Additions
 
-* https://github.com/aws-azure-login/aws-azure-login/pull/333
+* [workflow bits but not docker stuff](https://github.com/aws-azure-login/aws-azure-login/pull/333)
 * [Proxy](https://github.com/aws-azure-login/aws-azure-login/pull/313)
-* [Build libraries in docker](https://github.com/aws-azure-login/aws-azure-login/pull/260) but then removed as replaced with [slim docker](https://github.com/aws-azure-login/aws-azure-login/pull/242)
+* [Build libraries in docker](https://github.com/aws-azure-login/aws-azure-login/pull/260) lowercased the AS ... and had to bumo to node 16
+* tried with [slim docker](https://github.com/aws-azure-login/aws-azure-login/pull/242)
 * [ignore ssl](https://github.com/aws-azure-login/aws-azure-login/pull/172)
 * [login selector update](https://github.com/aws-azure-login/aws-azure-login/pull/239)
