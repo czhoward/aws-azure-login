@@ -74,7 +74,7 @@ const enableChromeSeamlessSso = !!options.enableChromeSeamlessSso;
 const forceRefresh = !!options.forceRefresh;
 const noDisableExtensions = !options.disableExtensions;
 const disableGpu = !!options.disableGpu;
-const puppeteerNoVerifySSL = !program.verifySslPuppeteer;
+const puppeteerNoVerifySSL = !options.verifySslPuppeteer;
 
 Promise.resolve()
   .then(() => {
