@@ -59,6 +59,10 @@
     "eslint-config-prettier": "^8.10.0",
     "prettier": "^2.8.8",
     "ts-node-dev": "^1.1.8",
-    "typescript": "^5.4.3"
+    "typescript": "^5.4.3"  },
+    "pkg": {
+      "assets": "node_modules/vm2/**/*",
+      "targets": [ "node14-alpine-x64" ],
+      "outputPath": "dist"
+    }
   }
-}
