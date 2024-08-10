@@ -56,7 +56,7 @@ RUN cd /aws-azure-login \
 
 FROM base
 
-COPY package.json package-lock.json /aws-azure-login/
+COPY package.json /aws-azure-login/
 
 RUN cd /aws-azure-login \
    && yarn install --production
